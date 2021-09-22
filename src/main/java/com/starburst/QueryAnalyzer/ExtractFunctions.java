@@ -1,5 +1,6 @@
 package com.starburst.QueryAnalyzer;
 
+import io.trino.sql.parser.ParsingException;
 import io.trino.sql.tree.Node;
 import io.trino.sql.parser.ParsingOptions;
 import io.trino.sql.parser.SqlParser;
@@ -43,10 +44,17 @@ public class ExtractFunctions
         ExtractFunctions extractor = new ExtractFunctions();
         Set<FunctionSignature> functionSignatures = new HashSet<>();
         for (String query: args){
+            query = query.trim();
             if (query.endsWith(";")) {
-                functionSignatures.addAll(extractor.extract(query.substring(0, query.length() - 2)));
-            } else {
+                query = query.substring(0, query.length() - 1);
+            }
+
+            try {
                 functionSignatures.addAll(extractor.extract(query));
+            } catch (ParsingException e) {
+                System.err.println(e.toString());
+                System.err.println("Could not parse:");
+                System.err.println(query);
             }
         }
         for (FunctionSignature signature : functionSignatures) {
